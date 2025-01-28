@@ -1,59 +1,87 @@
 package handlers
 
 import (
-  "fmt"
   "io"
+  "log"
   "net/http"
   "strconv"
+  "encoding/json"
+  "github.com/shinji128/go-basic-study/myapi/models"
   "github.com/gorilla/mux"
 )
 // /hello のハンドラ
 func HelloHandler(w http.ResponseWriter, req *http.Request) {
   io.WriteString(w, "Hello, world!\n")
 }
-// /article のハンドラ
+// POST /article のハンドラ
 func PostArticleHandler(w http.ResponseWriter, req *http.Request) {
-  io.WriteString(w, "Posting, Article...\n")
-}
-
-// /article/list のハンドラ
-func ArticleListHandler(w http.ResponseWriter, req *http.Request) {
-  queryMap := req.URL.Query()
-  var page int
-
-  // クエリパラメータpageがある場合はok=true, 無い場合はok=falseが格納される
-  if p, ok := queryMap["page"]; ok && len(p) > 0 {
-    var err error
-    page, err = strconv.Atoi(p[0])
-    if err != nil {
-      http.Error(w, "Invalid query parameter", http.StatusBadRequest)
-      return
-    }
-  } else {
-    page = 1
-  }
-
-  resString := fmt.Sprintf("Article List (page: %d)\n", page)
-  io.WriteString(w, resString)
-}
-// /article/{:id} のハンドラ
-func ArticleDetailHandler(w http.ResponseWriter, req *http.Request) {
-  // strconv.Atoiでidをstringからintに変換 intに変換できない場合はerrにエラーが入る
-  articleID, err := strconv.Atoi(mux.Vars(req)["id"])
-  if err != nil {
-    http.Error(w, "Invalid article ID", http.StatusBadRequest)
+  var reqArticle models.Article
+  if err := json.NewDecoder(req.Body).Decode(&reqArticle); err != nil {
+    http.Error(w, "fail to decode json\n", http.StatusBadRequest)
     return
   }
-  resString := fmt.Sprintf("Article No.%d\n" , articleID)
-  io.WriteString(w, resString)
+
+  article := reqArticle
+  json.NewEncoder(w).Encode(article)
 }
 
-// /article/nice のハンドラ
+// GET /article/list のハンドラ
+func ArticleListHandler(w http.ResponseWriter, req *http.Request) {
+	queryMap := req.URL.Query()
+
+	// クエリパラメータpageを取得
+	var page int
+	if p, ok := queryMap["page"]; ok && len(p) > 0 {
+		var err error
+		page, err = strconv.Atoi(p[0])
+		if err != nil {
+			http.Error(w, "Invalid query parameter", http.StatusBadRequest)
+			return
+		}
+	} else {
+		page = 1
+	}
+  // 暫定でこれを追加することで
+	// 「変数pageが使われていない」というコンパイルエラーを回避
+	log.Println(page)
+
+	articleList := []models.Article{models.Article1, models.Article2}
+  json.NewEncoder(w).Encode(articleList)
+}
+
+// GET /article/{id} のハンドラ
+func ArticleDetailHandler(w http.ResponseWriter, req *http.Request) {
+	articleID, err := strconv.Atoi(mux.Vars(req)["id"])
+	if err != nil {
+		http.Error(w, "Invalid query parameter", http.StatusBadRequest)
+		return
+	}
+  // 暫定でこれを追加することで
+	// 「変数articleIDが使われていない」というコンパイルエラーを回避
+	log.Println(articleID)
+
+	article := models.Article1
+  json.NewEncoder(w).Encode(article)
+}
+
+// POST /article/nice のハンドラ
 func PostNiceHandler(w http.ResponseWriter, req *http.Request) {
-  io.WriteString(w, "Posting Nice...\n")
+  var reqArticle models.Article
+	if err := json.NewDecoder(req.Body).Decode(&reqArticle); err != nil {
+		http.Error(w, "fail to decode json\n", http.StatusBadRequest)
+	}
+
+	article := models.Article1
+  json.NewEncoder(w).Encode(article)
 }
 
-// /comment のハンドラ
+// POST /comment のハンドラ
 func PostCommentHandler(w http.ResponseWriter, req *http.Request) {
-  io.WriteString(w, "Posting Comment...\n")
+	var reqComment models.Comment
+	if err := json.NewDecoder(req.Body).Decode(&reqComment); err != nil {
+		http.Error(w, "fail to decode json\n", http.StatusBadRequest)
+	}
+
+	comment := models.Comment1
+  json.NewEncoder(w).Encode(comment)
 }
