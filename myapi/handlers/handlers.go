@@ -5,6 +5,7 @@ import (
   "io"
   "net/http"
   "strconv"
+  "errors"
   "encoding/json"
   "github.com/shinji128/go-basic-study/myapi/models"
   "github.com/gorilla/mux"
@@ -15,6 +16,21 @@ func HelloHandler(w http.ResponseWriter, req *http.Request) {
 }
 // POST /article のハンドラ
 func PostArticleHandler(w http.ResponseWriter, req *http.Request) {
+  length, err := strconv.Atoi(req.Header.Get("Content-Length"))
+  if err != nil {
+    http.Error(w, "cannot get content length\n", http.StatusBadRequest)
+    return
+  }
+  reqBodybuffer := make([]byte, length)
+
+  // ファイルの読み込みが終わるとEOF(EndOfFile)というエラーが発生するがそれは正常に処理が終了したということ
+  // errors.Isは第一引数のエラーが第二引数のエラーと同じかどうかを判定する
+  if _, err := req.Body.Read(reqBodybuffer); !errors.Is(err, io.EOF) {
+    http.Error(w, "fail to get request body\n", http.StatusBadRequest)
+    return
+  }
+  defer req.Body.Close()
+
   article := models.Article{}
   jsonData, err := json.Marshal(article)
   if err != nil {
