@@ -1,0 +1,20 @@
+services:
+
+  mysql:
+    image: mysql:8.4
+    container_name: db-for-go
+    command: --mysql-native-password=ON
+    environment:
+        MYSQL_ROOT_USER: ${ROOTUSER}
+        MYSQL_ROOT_PASSWORD: ${ROOTPASS}
+        MYSQL_DATABASE: ${DATABASE}
+        MYSQL_USER: ${USERNAME}
+        MYSQL_PASSWORD: ${USERPASS}
+        TZ: 'Asia/Tokyo'
+    ports:
+        - "3306:3306"
+    volumes:
+        - db-volume:/var/lib/mysql
+
+volumes:
+  db-volume:
