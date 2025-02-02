@@ -1,52 +1,47 @@
 package main
 
 import (
-  "dbsample/models"
-  "database/sql"
-  "fmt"
-  _ "github.com/go-sql-driver/mysql"
+    "dbsample/models"
+    "database/sql"
+    "fmt"
+    _ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-  dbUser := "docker"
-  dbPassword := "docker"
-  dbDatabase := "sampledb"
-  dbConn := fmt.Sprintf("%s:%s@tcp(127.0.0.1:3306)/%s?parseTime=true", dbUser, dbPassword, dbDatabase)
+	dbUser := "docker"
+	dbPassword := "docker"
+	dbDatabase := "sampledb"
+	dbConn := fmt.Sprintf("%s:%s@tcp(127.0.0.1:3306)/%s?parseTime=true", dbUser, dbPassword, dbDatabase)
 
-  // Open 関数の第二引数にDBのアドレスを渡して接続する
-  db, err := sql.Open("mysql", dbConn)
-  if err != nil {
-    fmt.Println(err)
-  }
-  defer db.Close()
+	db, err := sql.Open("mysql", dbConn)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer db.Close()
 
+	articleID := 1
 	const sqlStr = `
-		SELECT title, contents, username, nice
-		FROM articles;
+		select *
+		from articles
+		where article_id = ?;
 	`
-	rows, err := db.Query(sqlStr)
+	row := db.QueryRow(sqlStr, articleID)
+	if err := row.Err(); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	var article models.Article
+	var createdTime sql.NullTime
+	err = row.Scan(&article.ID, &article.Title, &article.Contents, &article.UserName, &article.NiceNum, &createdTime)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	defer rows.Close()
 
-	articleArray := make([]models.Article, 0)
-	for rows.Next() {
-		var article models.Article
-    var createdTime sql.NullTime
-    err := rows.Scan(&article.ID, &article.Title, &article.Contents, &article.UserName, &article.NiceNum, &createdTime)
-
-		if createdTime.Valid {
-			article.CreatedAt = createdTime.Time
-		}
-
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			articleArray = append(articleArray, article)
-		}
+	if createdTime.Valid {
+		article.CreatedAt = createdTime.Time
 	}
 
-	fmt.Printf("%+v\n", articleArray)
+	fmt.Printf("%+v\n", article)
 }
