@@ -3,7 +3,7 @@ package repositories
 import (
 	"database/sql"
 
-	"github.com/yourname/reponame/models"
+	"github.com/shinji128/go-basic-study/myapi/models"
 )
 
 // 新規投稿をDBにinsertする関数
