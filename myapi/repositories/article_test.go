@@ -24,40 +24,53 @@ func TestSelectArticleDetail(t *testing.T) {
 	}
 	defer db.Close()
 
-  // 1. テスト結果として期待する値を定義
-	expected := models.Article{
-		ID:       1,
-		Title:    "firstPost",
-		Contents: "This is my first blog",
-		UserName: "saki",
-		NiceNum:  2,
+	tests := []struct {
+		testTitle string
+		expected  models.Article
+	}{
+		{
+			testTitle: "subtest1",
+			expected: models.Article{
+				ID:       1,
+				Title:    "firstPost",
+				Contents: "This is my first blog",
+				UserName: "saki",
+				NiceNum:  2,
+			},
+		}, {
+			testTitle: "subtest2",
+			expected: models.Article{
+				ID:       2,
+				Title:    "2nd",
+				Contents: "Second blog post",
+				UserName: "saki",
+				NiceNum:  4,
+			},
+		},
 	}
 
-  // 2. テスト対象となる関数を実行
-  // -> 結果がgot に格納される
-	got, err := repositories.SelectArticleDetail(db, expected.ID)
-	if err != nil {
-    // 関数の実行そのものに失敗した場合には、テストも失敗させる
-		t.Fatal(err)
-	}
+	for _, test := range tests {
+		t.Run(test.testTitle, func(t *testing.T) {
+			got, err := repositories.SelectArticleDetail(db, test.expected.ID)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-
-  // 3. 2 の結果と1 の値を比べる
-  // Errorは実行されても他のテストを続行する
-	if got.ID != expected.ID {
-		t.Errorf("ID: get %d but want %d\n", got.ID, expected.ID)
+			if got.ID != test.expected.ID {
+				t.Errorf("ID: get %d but want %d\n", got.ID, test.expected.ID)
+			}
+			if got.Title != test.expected.Title {
+				t.Errorf("Title: get %s but want %s\n", got.Title, test.expected.Title)
+			}
+			if got.Contents != test.expected.Contents {
+				t.Errorf("Content: get %s but want %s\n", got.Contents, test.expected.Contents)
+			}
+			if got.UserName != test.expected.UserName {
+				t.Errorf("UserName: get %s but want %s\n", got.UserName, test.expected.UserName)
+			}
+			if got.NiceNum != test.expected.NiceNum {
+				t.Errorf("NiceNum: get %d but want %d\n", got.NiceNum, test.expected.NiceNum)
+			}
+		})
 	}
-	if got.Title != expected.Title {
-		t.Errorf("Title: get %s but want %s\n", got.Title, expected.Title)
-	}
-	if got.Contents != expected.Contents {
-		t.Errorf("Content: get %s but want %s\n", got.Contents, expected.Contents)
-	}
-	if got.UserName != expected.UserName {
-		t.Errorf("UserName: get %s but want %s\n", got.UserName, expected.UserName)
-	}
-	if got.NiceNum != expected.NiceNum {
-		t.Errorf("NiceNum: get %d but want %d\n", got.NiceNum, expected.NiceNum)
-	}
-  // t.Fatal もt.Errorf も実行されずに関数が終わった場合にはテスト成功
 }
